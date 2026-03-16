@@ -174,11 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 Text('Welcome back 👋', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.85), fontSize: 13)),
                 Text('FundNovaX', style: GoogleFonts.poppins(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
               ]),
-              Container(
-                width: 46, height: 46,
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 22),
-              ),
+
             ],
           ),
           const SizedBox(height: 20),
