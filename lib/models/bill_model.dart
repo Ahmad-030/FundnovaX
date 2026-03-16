@@ -11,7 +11,6 @@ extension BillTypeExt on BillType {
       case BillType.other: return 'Other';
     }
   }
-
   String get icon {
     switch (this) {
       case BillType.electricity: return '⚡';
@@ -42,24 +41,32 @@ class BillModel {
 
   BillStatus get status {
     if (isPaid) return BillStatus.paid;
-    final now = DateTime.now();
-    if (dueDate.isBefore(now)) return BillStatus.late;
+    if (dueDate.isBefore(DateTime.now())) return BillStatus.late;
     return BillStatus.pending;
   }
 
-  int get daysUntilDue {
-    final now = DateTime.now();
-    return dueDate.difference(now).inDays;
-  }
+  int get daysUntilDue => dueDate.difference(DateTime.now()).inDays;
 
-  BillModel copyWith({bool? isPaid}) {
-    return BillModel(
-      id: id,
-      type: type,
-      name: name,
-      amount: amount,
-      dueDate: dueDate,
-      isPaid: isPaid ?? this.isPaid,
-    );
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type.index,
+    'name': name,
+    'amount': amount,
+    'dueDate': dueDate.toIso8601String(),
+    'isPaid': isPaid,
+  };
+
+  factory BillModel.fromJson(Map<String, dynamic> json) => BillModel(
+    id: json['id'] as String,
+    type: BillType.values[json['type'] as int],
+    name: json['name'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    dueDate: DateTime.parse(json['dueDate'] as String),
+    isPaid: json['isPaid'] as bool? ?? false,
+  );
+
+  BillModel copyWith({bool? isPaid}) => BillModel(
+    id: id, type: type, name: name, amount: amount, dueDate: dueDate,
+    isPaid: isPaid ?? this.isPaid,
+  );
 }

@@ -13,7 +13,6 @@ extension SavingsIconExt on SavingsIcon {
       case SavingsIcon.other: return '🎯';
     }
   }
-
   String get label {
     switch (this) {
       case SavingsIcon.phone: return 'Phone';
@@ -28,6 +27,26 @@ extension SavingsIconExt on SavingsIcon {
   }
 }
 
+class DepositEntry {
+  final String id;
+  final double amount;
+  final DateTime date;
+
+  DepositEntry({required this.id, required this.amount, required this.date});
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'amount': amount,
+    'date': date.toIso8601String(),
+  };
+
+  factory DepositEntry.fromJson(Map<String, dynamic> json) => DepositEntry(
+    id: json['id'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    date: DateTime.parse(json['date'] as String),
+  );
+}
+
 class SavingsGoal {
   final String id;
   final String name;
@@ -35,7 +54,7 @@ class SavingsGoal {
   final double targetAmount;
   final String currency;
   final DateTime targetDate;
-  final List<double> deposits;
+  final List<DepositEntry> depositEntries;
 
   SavingsGoal({
     required this.id,
@@ -44,28 +63,40 @@ class SavingsGoal {
     required this.targetAmount,
     required this.currency,
     required this.targetDate,
-    List<double>? deposits,
-  }) : deposits = deposits ?? [];
+    List<DepositEntry>? depositEntries,
+  }) : depositEntries = depositEntries ?? [];
 
-  double get savedAmount => deposits.fold(0, (s, d) => s + d);
+  double get savedAmount => depositEntries.fold(0, (s, d) => s + d.amount);
   double get remainingAmount => (targetAmount - savedAmount).clamp(0, double.infinity);
   double get progressPercent => targetAmount > 0 ? (savedAmount / targetAmount).clamp(0, 1) : 0;
   bool get isCompleted => savedAmount >= targetAmount;
+  int get daysRemaining => targetDate.difference(DateTime.now()).inDays.clamp(0, 99999);
 
-  int get daysRemaining {
-    final now = DateTime.now();
-    return targetDate.difference(now).inDays.clamp(0, 99999);
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'icon': icon.index,
+    'targetAmount': targetAmount,
+    'currency': currency,
+    'targetDate': targetDate.toIso8601String(),
+    'depositEntries': depositEntries.map((d) => d.toJson()).toList(),
+  };
 
-  SavingsGoal copyWith({List<double>? deposits}) {
-    return SavingsGoal(
-      id: id,
-      name: name,
-      icon: icon,
-      targetAmount: targetAmount,
-      currency: currency,
-      targetDate: targetDate,
-      deposits: deposits ?? this.deposits,
-    );
-  }
+  factory SavingsGoal.fromJson(Map<String, dynamic> json) => SavingsGoal(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    icon: SavingsIcon.values[json['icon'] as int],
+    targetAmount: (json['targetAmount'] as num).toDouble(),
+    currency: json['currency'] as String,
+    targetDate: DateTime.parse(json['targetDate'] as String),
+    depositEntries: (json['depositEntries'] as List? ?? [])
+        .map((d) => DepositEntry.fromJson(d as Map<String, dynamic>))
+        .toList(),
+  );
+
+  SavingsGoal copyWith({List<DepositEntry>? depositEntries}) => SavingsGoal(
+    id: id, name: name, icon: icon,
+    targetAmount: targetAmount, currency: currency, targetDate: targetDate,
+    depositEntries: depositEntries ?? this.depositEntries,
+  );
 }

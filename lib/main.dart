@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fundnovax/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme/app_theme.dart';
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/expense_screen.dart';
 import 'screens/budget_screen.dart';
@@ -10,8 +12,9 @@ import 'screens/debt_screen.dart';
 import 'screens/savings_screen.dart';
 import 'screens/about_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.instance.init();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -22,18 +25,24 @@ void main() {
 
 class FundNovaXApp extends StatefulWidget {
   const FundNovaXApp({super.key});
-
   @override
   State<FundNovaXApp> createState() => _FundNovaXAppState();
 }
 
 class _FundNovaXAppState extends State<FundNovaXApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
+  late ThemeMode _themeMode;
+  bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeMode = StorageService.instance.loadTheme() ? ThemeMode.dark : ThemeMode.light;
+  }
 
   void _toggleTheme() {
-    setState(() {
-      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    });
+    final newDark = _themeMode != ThemeMode.dark;
+    StorageService.instance.saveTheme(newDark);
+    setState(() => _themeMode = newDark ? ThemeMode.dark : ThemeMode.light);
   }
 
   @override
@@ -44,7 +53,11 @@ class _FundNovaXAppState extends State<FundNovaXApp> {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: _themeMode,
-      home: MainShell(onToggleTheme: _toggleTheme, themeMode: _themeMode),
+      home: _showSplash
+          ? SplashScreen(
+        onComplete: () => setState(() => _showSplash = false),
+      )
+          : MainShell(onToggleTheme: _toggleTheme, themeMode: _themeMode),
     );
   }
 }
@@ -52,14 +65,12 @@ class _FundNovaXAppState extends State<FundNovaXApp> {
 class MainShell extends StatefulWidget {
   final VoidCallback onToggleTheme;
   final ThemeMode themeMode;
-
   const MainShell({super.key, required this.onToggleTheme, required this.themeMode});
-
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> with SingleTickerProviderStateMixin {
+class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   late PageController _pageController;
 
@@ -76,6 +87,11 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   }
 
   void _navigateTo(int index) {
+    if (index >= 5) {
+      // Debt (5) and About (6) push as routes
+      Navigator.push(context, _slideRoute(index == 5 ? const DebtScreen() : const AboutScreen()));
+      return;
+    }
     setState(() => _currentIndex = index);
     _pageController.jumpToPage(index);
   }
@@ -91,7 +107,6 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: Stack(
         children: [
@@ -104,22 +119,17 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
               const BudgetScreen(),
               const BillScreen(),
               const SavingsScreen(),
-              const DebtScreen(),
-              const AboutScreen(),
             ],
           ),
-          // Theme toggle + extra nav overlay
-          Positioned(
-            top: 56,
-            right: 16,
-            child: _currentIndex == 0
-                ? _buildThemeToggle(isDark)
-                : const SizedBox.shrink(),
-          ),
+          if (_currentIndex == 0)
+            Positioned(
+              top: 56, right: 16,
+              child: _buildThemeToggle(isDark),
+            ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(isDark),
-      floatingActionButton: _currentIndex == 0 ? _buildMenuFAB(isDark) : null,
+      floatingActionButton: _currentIndex == 0 ? _buildMenuFAB() : null,
     );
   }
 
@@ -128,18 +138,13 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
       onTap: widget.onToggleTheme,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: 42,
-        height: 42,
+        width: 42, height: 42,
         decoration: BoxDecoration(
           color: isDark ? Colors.white.withOpacity(0.15) : Colors.white.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withOpacity(0.3)),
         ),
-        child: Icon(
-          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-          color: Colors.white,
-          size: 20,
-        ),
+        child: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: Colors.white, size: 20),
       ),
     );
   }
@@ -148,13 +153,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF16213E) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4))],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
@@ -180,23 +179,13 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        item.icon,
-                        size: 22,
-                        color: selected
-                            ? (isDark ? AppTheme.secondary : AppTheme.primary)
-                            : (isDark ? Colors.white38 : Colors.black38),
-                      ),
+                      Icon(item.icon, size: 22,
+                          color: selected ? (isDark ? AppTheme.secondary : AppTheme.primary) : (isDark ? Colors.white38 : Colors.black38)),
                       if (selected) ...[
                         const SizedBox(width: 6),
-                        Text(
-                          item.label,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppTheme.secondary : AppTheme.primary,
-                          ),
-                        ),
+                        Text(item.label, style: GoogleFonts.poppins(
+                            fontSize: 12, fontWeight: FontWeight.w700,
+                            color: isDark ? AppTheme.secondary : AppTheme.primary)),
                       ],
                     ],
                   ),
@@ -209,7 +198,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildMenuFAB(bool isDark) {
+  Widget _buildMenuFAB() {
     return FloatingActionButton(
       onPressed: () => _showQuickMenu(context),
       backgroundColor: AppTheme.primary,
@@ -234,22 +223,14 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
+            Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
             Text('Quick Navigate', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
+              crossAxisCount: 3, shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 1.0,
+              crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.0,
               children: [
                 _menuItem('💸', 'Expenses', 1, AppTheme.accent, context),
                 _menuItem('🎯', 'Budget', 2, AppTheme.primary, context),
@@ -270,11 +251,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
-        if (idx <= 4) {
-          _navigateTo(idx);
-        } else {
-          Navigator.push(context, _slideRoute(idx == 5 ? const DebtScreen() : const AboutScreen()));
-        }
+        _navigateTo(idx);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -282,14 +259,11 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.2)),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(height: 4),
-            Text(label, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-          ],
-        ),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 4),
+          Text(label, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+        ]),
       ),
     );
   }
@@ -297,13 +271,11 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   PageRoute _slideRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (_, __, ___) => page,
-      transitionsBuilder: (_, animation, __, child) {
-        return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-              .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
+      transitionsBuilder: (_, animation, __, child) => SlideTransition(
+        position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+        child: child,
+      ),
       transitionDuration: const Duration(milliseconds: 300),
     );
   }
