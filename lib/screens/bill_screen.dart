@@ -8,7 +8,8 @@ import '../storage_service.dart';
 import '../theme/app_theme.dart';
 
 class BillScreen extends StatefulWidget {
-  const BillScreen({super.key});
+  final String currency;
+  const BillScreen({super.key, required this.currency});
   @override
   State<BillScreen> createState() => _BillScreenState();
 }

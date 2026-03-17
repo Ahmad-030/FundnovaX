@@ -10,7 +10,8 @@ import '../widgets/progress_card.dart';
 import '../widgets/chart_widget.dart';
 
 class BudgetScreen extends StatefulWidget {
-  const BudgetScreen({super.key});
+  final String currency;
+  const BudgetScreen({super.key, required this.currency});
   @override
   State<BudgetScreen> createState() => _BudgetScreenState();
 }

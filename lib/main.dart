@@ -80,17 +80,23 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   late PageController _pageController;
+  String _currency = 'USD';
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _currency = StorageService.instance.loadCurrency();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onCurrencyChanged(String newCurrency) {
+    setState(() => _currency = newCurrency);
   }
 
   void _navigateTo(int index) {
@@ -124,11 +130,14 @@ class _MainShellState extends State<MainShell> {
             controller: _pageController,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              HomeScreen(onNavigate: _navigateTo),
-              const ExpenseScreen(),
-              const BudgetScreen(),
-              const BillScreen(),
-              const SavingsScreen(),
+              HomeScreen(onNavigate: _navigateTo, currency: _currency),
+              ExpenseScreen(currency: _currency),
+              BudgetScreen(currency: _currency),
+              BillScreen(currency: _currency),
+              SavingsScreen(
+                currency: _currency,
+                onCurrencyChanged: _onCurrencyChanged,
+              ),
             ],
           ),
           if (_currentIndex == 0)

@@ -7,11 +7,19 @@ import '../storage_service.dart';
 import '../theme/app_theme.dart';
 import '../models/expense_model.dart';
 import '../models/bill_model.dart';
+import '../utils/currency_utils.dart';
 import '../widgets/dashboard_card.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigate;
-  const HomeScreen({super.key, required this.onNavigate});
+  final String currency;
+
+  const HomeScreen({
+    super.key,
+    required this.onNavigate,
+    required this.currency,
+  });
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -44,6 +52,15 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
     _loadStats();
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-format amounts if currency changed
+    if (oldWidget.currency != widget.currency) {
+      _loadStats();
+    }
   }
 
   void _loadStats() {
@@ -101,19 +118,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   String _fmt(double v) {
-    final sym = _currencySymbol(StorageService.instance.loadCurrency());
-    if (v >= 1000000) return '$sym${(v / 1000000).toStringAsFixed(1)}M';
-    if (v >= 1000) return '$sym${(v / 1000).toStringAsFixed(1)}K';
-    return '$sym${v.toStringAsFixed(2)}';
-  }
-
-  String _currencySymbol(String code) {
-    const map = {
-      'USD': '\$', 'EUR': '€', 'GBP': '£', 'PKR': '₨', 'INR': '₹',
-      'AED': 'د.إ', 'SAR': '﷼', 'JPY': '¥', 'CNY': '¥',
-      'CAD': 'C\$', 'AUD': 'A\$', 'CHF': 'Fr'
-    };
-    return map[code] ?? '\$';
+    return CurrencyUtils.format(v, widget.currency);
   }
 
   @override

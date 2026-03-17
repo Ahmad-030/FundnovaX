@@ -9,7 +9,8 @@ import '../theme/app_theme.dart';
 import '../widgets/chart_widget.dart';
 
 class ExpenseScreen extends StatefulWidget {
-  const ExpenseScreen({super.key});
+  final String currency;
+  const ExpenseScreen({super.key, required this.currency});
   @override
   State<ExpenseScreen> createState() => _ExpenseScreenState();
 }

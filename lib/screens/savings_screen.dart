@@ -9,7 +9,15 @@ import '../theme/app_theme.dart';
 import '../utils/currency_utils.dart';
 
 class SavingsScreen extends StatefulWidget {
-  const SavingsScreen({super.key});
+  final String currency;
+  final ValueChanged<String> onCurrencyChanged;
+
+  const SavingsScreen({
+    super.key,
+    required this.currency,
+    required this.onCurrencyChanged,
+  });
+
   @override
   State<SavingsScreen> createState() => _SavingsScreenState();
 }
@@ -17,18 +25,28 @@ class SavingsScreen extends StatefulWidget {
 class _SavingsScreenState extends State<SavingsScreen>
     with TickerProviderStateMixin {
   List<SavingsGoal> _goals = [];
-  String _currency = 'USD';
+
+  // Local mirror so the dropdown feels instant
+  late String _currency;
 
   @override
   void initState() {
     super.initState();
+    _currency = widget.currency;
     _load();
+  }
+
+  @override
+  void didUpdateWidget(SavingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currency != widget.currency) {
+      setState(() => _currency = widget.currency);
+    }
   }
 
   void _load() {
     setState(() {
       _goals = StorageService.instance.loadSavings();
-      _currency = StorageService.instance.loadCurrency();
     });
   }
 
@@ -238,8 +256,11 @@ class _SavingsScreenState extends State<SavingsScreen>
         ))
             .toList(),
         onChanged: (v) async {
-          setState(() => _currency = v!);
-          await StorageService.instance.saveCurrency(v!);
+          if (v == null) return;
+          setState(() => _currency = v);
+          await StorageService.instance.saveCurrency(v);
+          // Notify parent so all other screens update immediately
+          widget.onCurrencyChanged(v);
         },
       ),
     );
