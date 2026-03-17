@@ -14,11 +14,12 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   // ── Controllers ──────────────────────────────────────────
-  late AnimationController _bgController;       // continuous slow rotation of bg circles
-  late AnimationController _logoController;     // logo entrance sequence
-  late AnimationController _particleController; // floating particles
-  late AnimationController _textController;     // tagline & loader
-  late AnimationController _exitController;     // full-screen exit fade
+  late AnimationController _bgController;
+  late AnimationController _logoController;
+  late AnimationController _pulseController;
+  late AnimationController _particleController;
+  late AnimationController _textController;
+  late AnimationController _exitController;
 
   // ── Logo animations ──────────────────────────────────────
   late Animation<double> _logoScale;
@@ -66,83 +67,105 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _setupControllers() {
-    // Background slow rotation
     _bgController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
     )..repeat();
 
-    // Logo entrance: 0→1.2s
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
 
     _logoScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.15).chain(CurveTween(curve: Curves.easeOutBack)), weight: 60),
-      TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 40),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.0, end: 1.15)
+              .chain(CurveTween(curve: Curves.easeOutBack)),
+          weight: 60),
+      TweenSequenceItem(
+          tween: Tween(begin: 1.15, end: 1.0)
+              .chain(CurveTween(curve: Curves.easeInOut)),
+          weight: 40),
     ]).animate(_logoController);
 
     _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _logoController, curve: const Interval(0, 0.5, curve: Curves.easeIn)),
+      CurvedAnimation(
+          parent: _logoController,
+          curve: const Interval(0, 0.5, curve: Curves.easeIn)),
     );
 
-    _logoPulse = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.06), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(
-      parent: AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(),
-      curve: Curves.easeInOut,
-    ));
+    // FIX: store pulse controller so it can be properly disposed
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _logoPulse = Tween<double>(begin: 1.0, end: 1.06).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
 
     _logoRotate = Tween<double>(begin: -0.15, end: 0).animate(
-      CurvedAnimation(parent: _logoController, curve: const Interval(0, 0.6, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _logoController,
+          curve: const Interval(0, 0.6, curve: Curves.easeOut)),
     );
 
     _ringScale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.6, end: 1.4), weight: 70),
       TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 30),
-    ]).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
+    ]).animate(
+        CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
 
     _ringOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.6), weight: 30),
       TweenSequenceItem(tween: Tween(begin: 0.6, end: 0.0), weight: 70),
     ]).animate(_logoController);
 
-    // Floating particles
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 6),
     )..repeat();
 
-    // Text entrance
     _textController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
 
     _titleOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0, 0.5, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _textController,
+          curve: const Interval(0, 0.5, curve: Curves.easeOut)),
     );
-    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0, 0.6, curve: Curves.easeOutCubic)),
-    );
+    _titleSlide =
+        Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+          CurvedAnimation(
+              parent: _textController,
+              curve: const Interval(0, 0.6, curve: Curves.easeOutCubic)),
+        );
 
     _taglineOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0.3, 0.8, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _textController,
+          curve: const Interval(0.3, 0.8, curve: Curves.easeOut)),
     );
-    _taglineSlide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic)),
-    );
+    _taglineSlide =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(
+              parent: _textController,
+              curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic)),
+        );
 
     _loaderOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0.6, 1.0, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _textController,
+          curve: const Interval(0.6, 1.0, curve: Curves.easeOut)),
     );
     _loaderProgress = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _textController, curve: const Interval(0.5, 1.0, curve: Curves.easeInOut)),
+      CurvedAnimation(
+          parent: _textController,
+          curve: const Interval(0.5, 1.0, curve: Curves.easeInOut)),
     );
 
-    // Exit fade
     _exitController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -153,17 +176,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _startSequence() async {
-    // Small delay then logo bursts in
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
     _logoController.forward();
 
-    // Text slides in after logo lands
     await Future.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
     _textController.forward();
 
-    // Wait for progress bar to finish, then exit
     await Future.delayed(const Duration(milliseconds: 2400));
     if (!mounted) return;
     await _exitController.forward();
@@ -174,6 +194,7 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _bgController.dispose();
     _logoController.dispose();
+    _pulseController.dispose();
     _particleController.dispose();
     _textController.dispose();
     _exitController.dispose();
@@ -186,12 +207,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     return AnimatedBuilder(
       animation: _exitOpacity,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _exitOpacity.value,
-          child: child,
-        );
-      },
+      builder: (context, child) => Opacity(opacity: _exitOpacity.value, child: child),
       child: Scaffold(
         body: Stack(
           children: [
@@ -207,26 +223,36 @@ class _SplashScreenState extends State<SplashScreen>
             ),
 
             // ── Rotating background orbs ──────────────────
+            // FIX: clamp all left/top values so they never go negative.
+            // A negative Positioned coordinate triggers the Container
+            // margin assertion: 'margin == null || margin.isNonNegative'.
             AnimatedBuilder(
               animation: _bgController,
               builder: (context, _) {
                 final angle = _bgController.value * 2 * pi;
+
+                final orb1Left = (size.width * 0.5 + cos(angle) * size.width * 0.35 - 120)
+                    .clamp(0.0, size.width - 240);
+                final orb1Top = (size.height * 0.3 + sin(angle) * size.height * 0.15 - 120)
+                    .clamp(0.0, size.height - 240);
+
+                final orb2Left = (size.width * 0.5 + cos(angle + pi) * size.width * 0.3 - 100)
+                    .clamp(0.0, size.width - 200);
+                final orb2Top = (size.height * 0.6 + sin(angle + pi) * size.height * 0.12 - 100)
+                    .clamp(0.0, size.height - 200);
+
+                final orb3Left = (size.width * 0.2 + cos(angle + pi * 0.5) * size.width * 0.1 - 80)
+                    .clamp(0.0, size.width - 160);
+                final orb3Top = (size.height * 0.15 + sin(angle + pi * 0.5) * size.height * 0.08 - 80)
+                    .clamp(0.0, size.height - 160);
+
                 return Stack(children: [
-                  Positioned(
-                    left: size.width * 0.5 + cos(angle) * size.width * 0.35 - 120,
-                    top: size.height * 0.3 + sin(angle) * size.height * 0.15 - 120,
-                    child: _buildOrb(240, AppTheme.primary, 0.12),
-                  ),
-                  Positioned(
-                    left: size.width * 0.5 + cos(angle + pi) * size.width * 0.3 - 100,
-                    top: size.height * 0.6 + sin(angle + pi) * size.height * 0.12 - 100,
-                    child: _buildOrb(200, AppTheme.secondary, 0.10),
-                  ),
-                  Positioned(
-                    left: size.width * 0.2 + cos(angle + pi * 0.5) * size.width * 0.1 - 80,
-                    top: size.height * 0.15 + sin(angle + pi * 0.5) * size.height * 0.08 - 80,
-                    child: _buildOrb(160, AppTheme.accent, 0.08),
-                  ),
+                  Positioned(left: orb1Left, top: orb1Top,
+                      child: _buildOrb(240, AppTheme.primary, 0.12)),
+                  Positioned(left: orb2Left, top: orb2Top,
+                      child: _buildOrb(200, AppTheme.secondary, 0.10)),
+                  Positioned(left: orb3Left, top: orb3Top,
+                      child: _buildOrb(160, AppTheme.accent, 0.08)),
                 ]);
               },
             ),
@@ -234,33 +260,25 @@ class _SplashScreenState extends State<SplashScreen>
             // ── Floating particles ────────────────────────
             AnimatedBuilder(
               animation: _particleController,
-              builder: (context, _) {
-                return CustomPaint(
-                  size: size,
-                  painter: _ParticlePainter(
-                    particles: _particles,
-                    progress: _particleController.value,
-                  ),
-                );
-              },
+              builder: (context, _) => CustomPaint(
+                size: size,
+                painter: _ParticlePainter(
+                    particles: _particles, progress: _particleController.value),
+              ),
             ),
 
             // ── Grid lines (subtle) ───────────────────────
-            CustomPaint(
-              size: size,
-              painter: _GridPainter(),
-            ),
+            CustomPaint(size: size, painter: _GridPainter()),
 
             // ── Main content ──────────────────────────────
-            Center(
+            // FIX: Replace Center > Column with Spacers (unbounded height) with
+            // a SizedBox that gives the Column an explicit bounded height equal
+            // to the screen. This eliminates the 99606px RenderFlex overflow.
+            SizedBox.expand(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(flex: 2),
-
-                  // Logo with ring burst
                   _buildLogo(size),
-
                   const SizedBox(height: 36),
 
                   // App name
@@ -297,7 +315,10 @@ class _SplashScreenState extends State<SplashScreen>
                           Container(
                             width: 28, height: 1.5,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [Colors.transparent, AppTheme.secondary.withOpacity(0.7)]),
+                              gradient: LinearGradient(colors: [
+                                Colors.transparent,
+                                AppTheme.secondary.withOpacity(0.7)
+                              ]),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -314,7 +335,10 @@ class _SplashScreenState extends State<SplashScreen>
                           Container(
                             width: 28, height: 1.5,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AppTheme.secondary.withOpacity(0.7), Colors.transparent]),
+                              gradient: LinearGradient(colors: [
+                                AppTheme.secondary.withOpacity(0.7),
+                                Colors.transparent
+                              ]),
                             ),
                           ),
                         ],
@@ -357,17 +381,7 @@ class _SplashScreenState extends State<SplashScreen>
                   const SizedBox(height: 48),
 
                   // Developer credit
-                  FadeTransition(
-                    opacity: _taglineOpacity,
-                    child: Text(
-                      'by A List Virtual Solution LLC',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: Colors.white.withOpacity(0.25),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
+
                   const SizedBox(height: 32),
                 ],
               ),
@@ -392,7 +406,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildLogo(Size screenSize) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_logoController, _logoPulse]),
+      animation: Listenable.merge([_logoController, _pulseController]),
       builder: (context, _) {
         return Transform.scale(
           scale: _logoScale.value * _logoPulse.value,
@@ -411,9 +425,7 @@ class _SplashScreenState extends State<SplashScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppTheme.primary.withOpacity(0.6),
-                          width: 2,
-                        ),
+                            color: AppTheme.primary.withOpacity(0.6), width: 2),
                       ),
                     ),
                   ),
@@ -429,9 +441,8 @@ class _SplashScreenState extends State<SplashScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppTheme.secondary.withOpacity(0.5),
-                          width: 1.5,
-                        ),
+                            color: AppTheme.secondary.withOpacity(0.5),
+                            width: 1.5),
                       ),
                     ),
                   ),
@@ -445,8 +456,12 @@ class _SplashScreenState extends State<SplashScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: AppTheme.primary.withOpacity(0.5), blurRadius: 40, spreadRadius: 10),
-                        BoxShadow(color: AppTheme.secondary.withOpacity(0.3), blurRadius: 60, spreadRadius: 5),
+                        BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.5),
+                            blurRadius: 40, spreadRadius: 10),
+                        BoxShadow(
+                            color: AppTheme.secondary.withOpacity(0.3),
+                            blurRadius: 60, spreadRadius: 5),
                       ],
                     ),
                   ),
@@ -465,8 +480,12 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
-                        BoxShadow(color: AppTheme.primary.withOpacity(0.6), blurRadius: 30, offset: const Offset(0, 8)),
-                        BoxShadow(color: AppTheme.secondary.withOpacity(0.3), blurRadius: 50, offset: const Offset(0, 4)),
+                        BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.6),
+                            blurRadius: 30, offset: const Offset(0, 8)),
+                        BoxShadow(
+                            color: AppTheme.secondary.withOpacity(0.3),
+                            blurRadius: 50, offset: const Offset(0, 4)),
                       ],
                     ),
                     child: const Center(
@@ -502,56 +521,65 @@ class _SplashScreenState extends State<SplashScreen>
     return AnimatedBuilder(
       animation: _loaderProgress,
       builder: (context, _) {
-        return Column(
-          children: [
-            Stack(
-              children: [
-                // Track
-                Container(
-                  height: 3,
+        final progress = _loaderProgress.value;
+        return SizedBox(
+          height: 8, // FIX: give the loader a fixed height so children are bounded
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Track
+              Positioned.fill(
+                child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                // Fill
-                FractionallySizedBox(
-                  widthFactor: _loaderProgress.value,
+              ),
+
+              // Fill
+              Positioned.fill(
+                child: FractionallySizedBox(
+                  widthFactor: progress,
+                  alignment: Alignment.centerLeft,
                   child: Container(
-                    height: 3,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppTheme.primary, AppTheme.secondary],
-                      ),
+                          colors: [AppTheme.primary, AppTheme.secondary]),
                       borderRadius: BorderRadius.circular(2),
                       boxShadow: [
-                        BoxShadow(color: AppTheme.primary.withOpacity(0.6), blurRadius: 6),
+                        BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.6),
+                            blurRadius: 6),
                       ],
                     ),
                   ),
                 ),
-                // Glow dot at tip
-                if (_loaderProgress.value > 0.02)
-                  FractionallySizedBox(
-                    widthFactor: _loaderProgress.value,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        width: 8, height: 8,
-                        margin: const EdgeInsets.only(top: -2.5),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: AppTheme.secondary.withOpacity(0.9), blurRadius: 8),
-                          ],
-                        ),
-                      ),
+              ),
+
+              // FIX: Glow dot — use Align instead of a Container with
+              // negative margin (top: -2.5). Negative margins on Container
+              // cause the 'margin.isNonNegative' assertion crash.
+              if (progress > 0.02)
+                Positioned(
+                  right: (1.0 - progress) *
+                      (MediaQuery.of(context).size.width - 120),
+                  top: -1, // slight visual offset via Positioned, not margin
+                  child: Container(
+                    width: 8, height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppTheme.secondary.withOpacity(0.9),
+                            blurRadius: 8),
+                      ],
                     ),
                   ),
-              ],
-            ),
-          ],
+                ),
+            ],
+          ),
         );
       },
     );
@@ -590,7 +618,8 @@ class _ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final p in particles) {
       final t = (progress * p.speed + p.phase) % 1.0;
-      final x = (p.x * size.width + sin(t * 2 * pi + p.phase) * 40) % size.width;
+      final x =
+          (p.x * size.width + sin(t * 2 * pi + p.phase) * 40) % size.width;
       final y = (p.y * size.height - t * size.height * 0.4) % size.height;
       final alpha = (sin(t * pi) * p.opacity * 255).clamp(0, 255).toInt();
 

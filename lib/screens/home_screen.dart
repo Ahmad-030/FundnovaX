@@ -124,9 +124,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _animated(0, _buildQuickStats(isDark)),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     _animated(1, Text('Quick Access', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87))),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 0),
                     _animated(2, _buildModuleGrid()),
                     const SizedBox(height: 24),
                     _animated(3, _buildTipCard(isDark)),

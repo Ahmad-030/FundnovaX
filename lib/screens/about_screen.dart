@@ -35,8 +35,7 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Text('Made with ❤️ by A List Virtual Solution LLC', style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
           const SizedBox(height: 8),
-          Text('Version 1.0.0', style: GoogleFonts.poppins(color: Colors.grey.shade500, fontSize: 11)),
-          const SizedBox(height: 30),
+
         ]),
       ),
     );
@@ -240,7 +239,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(onPageFinished: (_) => setState(() => _loading = false)))
-      ..loadFlutterAsset('lib/privacy/privacy_policy.html');
+      ..loadFlutterAsset('assets/privacy_policy.html');
   }
 
   @override
