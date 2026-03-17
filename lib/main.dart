@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fundnovax/responsive.dart';
 import 'package:fundnovax/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme/app_theme.dart';
@@ -36,13 +37,16 @@ class _FundNovaXAppState extends State<FundNovaXApp> {
   @override
   void initState() {
     super.initState();
-    _themeMode = StorageService.instance.loadTheme() ? ThemeMode.dark : ThemeMode.light;
+    _themeMode = StorageService.instance.loadTheme()
+        ? ThemeMode.dark
+        : ThemeMode.light;
   }
 
   void _toggleTheme() {
     final newDark = _themeMode != ThemeMode.dark;
     StorageService.instance.saveTheme(newDark);
-    setState(() => _themeMode = newDark ? ThemeMode.dark : ThemeMode.light);
+    setState(
+            () => _themeMode = newDark ? ThemeMode.dark : ThemeMode.light);
   }
 
   @override
@@ -55,9 +59,9 @@ class _FundNovaXAppState extends State<FundNovaXApp> {
       themeMode: _themeMode,
       home: _showSplash
           ? SplashScreen(
-        onComplete: () => setState(() => _showSplash = false),
-      )
-          : MainShell(onToggleTheme: _toggleTheme, themeMode: _themeMode),
+          onComplete: () => setState(() => _showSplash = false))
+          : MainShell(
+          onToggleTheme: _toggleTheme, themeMode: _themeMode),
     );
   }
 }
@@ -65,7 +69,10 @@ class _FundNovaXAppState extends State<FundNovaXApp> {
 class MainShell extends StatefulWidget {
   final VoidCallback onToggleTheme;
   final ThemeMode themeMode;
-  const MainShell({super.key, required this.onToggleTheme, required this.themeMode});
+  const MainShell(
+      {super.key,
+        required this.onToggleTheme,
+        required this.themeMode});
   @override
   State<MainShell> createState() => _MainShellState();
 }
@@ -88,8 +95,10 @@ class _MainShellState extends State<MainShell> {
 
   void _navigateTo(int index) {
     if (index >= 5) {
-      // Debt (5) and About (6) push as routes
-      Navigator.push(context, _slideRoute(index == 5 ? const DebtScreen() : const AboutScreen()));
+      Navigator.push(
+          context,
+          _slideRoute(
+              index == 5 ? const DebtScreen() : const AboutScreen()));
       return;
     }
     setState(() => _currentIndex = index);
@@ -106,6 +115,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Stack(
@@ -123,42 +133,63 @@ class _MainShellState extends State<MainShell> {
           ),
           if (_currentIndex == 0)
             Positioned(
-              top: 56, right: 16,
+              top: MediaQuery.of(context).padding.top + 8,
+              right: Responsive.hPad,
               child: _buildThemeToggle(isDark),
             ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(isDark),
-      floatingActionButton: _currentIndex == 0 ? _buildMenuFAB() : null,
+      floatingActionButton:
+      _currentIndex == 0 ? _buildMenuFAB() : null,
     );
   }
 
   Widget _buildThemeToggle(bool isDark) {
+    final size = Responsive.isXSmall ? 38.0 : 42.0;
     return GestureDetector(
       onTap: widget.onToggleTheme,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: 42, height: 42,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.15) : Colors.white.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
+          color: isDark
+              ? Colors.white.withOpacity(0.15)
+              : Colors.white.withOpacity(0.3),
+          borderRadius:
+          BorderRadius.circular(Responsive.radiusSm),
           border: Border.all(color: Colors.white.withOpacity(0.3)),
         ),
-        child: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: Colors.white, size: 20),
+        child: Icon(
+          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+          color: Colors.white,
+          size: Responsive.isXSmall ? 17 : 20,
+        ),
       ),
     );
   }
 
   Widget _buildBottomNav(bool isDark) {
+    final bottomPad = MediaQuery.of(context).padding.bottom;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF16213E) : Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4))],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4))
+        ],
+        borderRadius:
+        const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.isXSmall ? 4 : 8,
+            vertical: Responsive.isXSmall ? 6 : 8,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(_navItems.length, (i) {
@@ -169,23 +200,48 @@ class _MainShellState extends State<MainShell> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
-                  padding: EdgeInsets.symmetric(horizontal: selected ? 16 : 12, vertical: 8),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: selected
+                        ? (Responsive.isXSmall ? 10 : 16)
+                        : (Responsive.isXSmall ? 8 : 12),
+                    vertical: Responsive.isXSmall ? 6 : 8,
+                  ),
                   decoration: BoxDecoration(
                     color: selected
-                        ? (isDark ? AppTheme.secondary.withOpacity(0.15) : AppTheme.primary.withOpacity(0.1))
+                        ? (isDark
+                        ? AppTheme.secondary.withOpacity(0.15)
+                        : AppTheme.primary.withOpacity(0.1))
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(
+                        Responsive.radiusMd),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(item.icon, size: 22,
-                          color: selected ? (isDark ? AppTheme.secondary : AppTheme.primary) : (isDark ? Colors.white38 : Colors.black38)),
+                      Icon(
+                        item.icon,
+                        size: Responsive.iconMd,
+                        color: selected
+                            ? (isDark
+                            ? AppTheme.secondary
+                            : AppTheme.primary)
+                            : (isDark
+                            ? Colors.white38
+                            : Colors.black38),
+                      ),
                       if (selected) ...[
-                        const SizedBox(width: 6),
-                        Text(item.label, style: GoogleFonts.poppins(
-                            fontSize: 12, fontWeight: FontWeight.w700,
-                            color: isDark ? AppTheme.secondary : AppTheme.primary)),
+                        SizedBox(
+                            width: Responsive.isXSmall ? 4 : 6),
+                        Text(
+                          item.label,
+                          style: GoogleFonts.poppins(
+                            fontSize: Responsive.fontCaption,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppTheme.secondary
+                                : AppTheme.primary,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -203,51 +259,78 @@ class _MainShellState extends State<MainShell> {
       onPressed: () => _showQuickMenu(context),
       backgroundColor: AppTheme.primary,
       elevation: 6,
-      child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 24),
+      child: Icon(Icons.grid_view_rounded,
+          color: Colors.white,
+          size: Responsive.isXSmall ? 20 : 24),
     );
   }
 
   void _showQuickMenu(BuildContext context) {
+    Responsive.init(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(20),
+        margin: EdgeInsets.all(Responsive.isXSmall ? 12 : 16),
+        padding: EdgeInsets.all(Responsive.isXSmall ? 16 : 20),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius:
+          BorderRadius.circular(Responsive.radiusXl),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 16),
-            Text('Quick Navigate', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 16),
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            SizedBox(height: Responsive.isXSmall ? 12 : 16),
+            Text(
+              'Quick Navigate',
+              style: GoogleFonts.poppins(
+                  fontSize: Responsive.fontTitle - 2,
+                  fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: Responsive.isXSmall ? 12 : 16),
             GridView.count(
-              crossAxisCount: 3, shrinkWrap: true,
+              crossAxisCount: 3,
+              shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.0,
+              crossAxisSpacing: Responsive.isXSmall ? 8 : 10,
+              mainAxisSpacing: Responsive.isXSmall ? 8 : 10,
+              childAspectRatio: Responsive.moduleCardAspect,
               children: [
-                _menuItem('💸', 'Expenses', 1, AppTheme.accent, context),
-                _menuItem('🎯', 'Budget', 2, AppTheme.primary, context),
-                _menuItem('🔔', 'Bills', 3, AppTheme.warning, context),
-                _menuItem('🤝', 'Debts', 5, AppTheme.secondary, context),
-                _menuItem('🏦', 'Savings', 4, AppTheme.success, context),
-                _menuItem('ℹ️', 'About', 6, Colors.purple, context),
+                _menuItem(
+                    '💸', 'Expenses', 1, AppTheme.accent, context),
+                _menuItem(
+                    '🎯', 'Budget', 2, AppTheme.primary, context),
+                _menuItem(
+                    '🔔', 'Bills', 3, AppTheme.warning, context),
+                _menuItem(
+                    '🤝', 'Debts', 5, AppTheme.secondary, context),
+                _menuItem(
+                    '🏦', 'Savings', 4, AppTheme.success, context),
+                _menuItem(
+                    'ℹ️', 'About', 6, Colors.purple, context),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Responsive.isXSmall ? 4 : 8),
           ],
         ),
       ),
     );
   }
 
-  Widget _menuItem(String emoji, String label, int idx, Color color, BuildContext context) {
+  Widget _menuItem(String emoji, String label, int idx, Color color,
+      BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
@@ -256,14 +339,26 @@ class _MainShellState extends State<MainShell> {
       child: Container(
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+          BorderRadius.circular(Responsive.radiusMd),
           border: Border.all(color: color.withOpacity(0.2)),
         ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(height: 4),
-          Text(label, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-        ]),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(emoji,
+                  style: TextStyle(
+                      fontSize: Responsive.isXSmall ? 20 : 24)),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: Responsive.fontCaption,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ]),
       ),
     );
   }
@@ -272,8 +367,10 @@ class _MainShellState extends State<MainShell> {
     return PageRouteBuilder(
       pageBuilder: (_, __, ___) => page,
       transitionsBuilder: (_, animation, __, child) => SlideTransition(
-        position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+        position: Tween<Offset>(
+            begin: const Offset(1, 0), end: Offset.zero)
+            .animate(CurvedAnimation(
+            parent: animation, curve: Curves.easeOutCubic)),
         child: child,
       ),
       transitionDuration: const Duration(milliseconds: 300),

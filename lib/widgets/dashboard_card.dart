@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../responsive.dart';
 import '../theme/app_theme.dart';
 
 class DashboardCard extends StatelessWidget {
@@ -21,41 +22,64 @@ class DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+              colors: gradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(Responsive.radiusLg),
           boxShadow: [
             BoxShadow(
               color: gradient.first.withOpacity(0.3),
-              blurRadius: 15, offset: const Offset(0, 6),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(Responsive.isXSmall ? 14 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(icon, style: const TextStyle(fontSize: 28)),
+                Text(icon,
+                    style: TextStyle(
+                        fontSize: Responsive.isXSmall ? 22 : 28)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                  child: Text(title,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: Responsive.fontCaption,
+                          fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+            SizedBox(height: Responsive.isXSmall ? 10 : 14),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: Responsive.isXSmall ? 18 : 22,
+                      fontWeight: FontWeight.w800)),
+            ),
             const SizedBox(height: 4),
-            Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+            Text(subtitle,
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: Responsive.fontCaption)),
           ],
         ),
       ),
@@ -79,34 +103,58 @@ class SummaryStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.isXSmall ? 8 : 12,
+        vertical: Responsive.isXSmall ? 8 : 12,
+      ),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.radiusMd),
         border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: color.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(9)),
-            child: Text(icon, style: const TextStyle(fontSize: 15)),
+            padding:
+            EdgeInsets.all(Responsive.isXSmall ? 5 : 6),
+            decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(
+                    Responsive.radiusSm - 2)),
+            child: Text(icon,
+                style: TextStyle(
+                    fontSize: Responsive.isXSmall ? 13 : 15)),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: Responsive.isXSmall ? 6 : 8),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color)),
+            child: Text(
+              value,
+              style: TextStyle(
+                  fontSize: Responsive.isXSmall ? 15 : 17,
+                  fontWeight: FontWeight.w800,
+                  color: color),
+            ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black45, fontWeight: FontWeight.w500),
+            style: TextStyle(
+                fontSize: Responsive.fontCaption,
+                color: isDark ? Colors.white54 : Colors.black45,
+                fontWeight: FontWeight.w500),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -132,21 +180,36 @@ class GradientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final topPad = Responsive.headerTop(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 28),
+      padding: EdgeInsets.fromLTRB(
+          Responsive.hPad, topPad, Responsive.hPad, 28),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+        gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
+        borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(30),
+            bottomRight: Radius.circular(30)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (trailing != null)
             Align(alignment: Alignment.topRight, child: trailing!),
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
+          Text(title,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: Responsive.fontTitle + 8,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)),
+          Text(subtitle,
+              style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: Responsive.fontBody)),
         ],
       ),
     );
