@@ -106,8 +106,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Widget _buildHeader(bool isDark) {
     final topPad = Responsive.headerTop(context);
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-          Responsive.hPad, topPad, Responsive.hPad, 24),
+          Responsive.hPad, topPad, Responsive.hPad, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
             colors: AppTheme.gradientPrimary,
@@ -117,23 +118,26 @@ class _BudgetScreenState extends State<BudgetScreen> {
             bottomLeft: Radius.circular(28),
             bottomRight: Radius.circular(28)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          '🎯 Budget Planner',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: Responsive.fontTitle + 4,
-            fontWeight: FontWeight.w800,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '🎯 Budget Planner',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: Responsive.fontTitle + 4,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        ),
-        Text(
-          'Stay on top of your spending',
-          style: GoogleFonts.poppins(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: Responsive.fontCaption + 1,
+          Text(
+            'Stay on top of your spending',
+            style: GoogleFonts.poppins(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: Responsive.fontCaption + 1,
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 

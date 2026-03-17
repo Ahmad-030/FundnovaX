@@ -52,16 +52,8 @@ class _DebtScreenState extends State<DebtScreen>
     return Scaffold(
       backgroundColor:
       isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF0EFFF),
-      appBar: AppBar(
-        title: Text('🤝 Debt Tracker',
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: Responsive.fontTitle)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-      ),
       body: Column(children: [
+        _buildHeader(isDark),
         Padding(
           padding: EdgeInsets.fromLTRB(
               Responsive.hPad, 0, Responsive.hPad, 8),
@@ -111,6 +103,57 @@ class _DebtScreenState extends State<DebtScreen>
         onPressed: () => _showAddDialog(context),
         backgroundColor: AppTheme.secondary,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isDark) {
+    final topPad = Responsive.headerTop(context);
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+          Responsive.hPad, topPad, Responsive.hPad, 24),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+            colors: [Color(0xFF3ECFCF), Color(0xFF6C63FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(28),
+            bottomRight: Radius.circular(28)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              '🤝 Debt Tracker',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: Responsive.fontTitle + 4,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              'Track money lent & borrowed',
+              style: GoogleFonts.poppins(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: Responsive.fontCaption + 1,
+              ),
+            ),
+          ]),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(Responsive.radiusSm),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white, size: 18),
+            ),
+          ),
+        ],
       ),
     );
   }

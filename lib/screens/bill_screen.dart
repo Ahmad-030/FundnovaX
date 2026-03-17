@@ -104,8 +104,9 @@ class _BillScreenState extends State<BillScreen> {
   Widget _buildHeader(bool isDark) {
     final topPad = Responsive.headerTop(context);
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-          Responsive.hPad, topPad, Responsive.hPad, 24),
+          Responsive.hPad, topPad, Responsive.hPad, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
             colors: [Color(0xFFFF9800), Color(0xFFFF6584)],
@@ -115,23 +116,26 @@ class _BillScreenState extends State<BillScreen> {
             bottomLeft: Radius.circular(28),
             bottomRight: Radius.circular(28)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          '🔔 Bill Reminder',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: Responsive.fontTitle + 4,
-            fontWeight: FontWeight.w800,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '🔔 Bill Reminder',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: Responsive.fontTitle + 4,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        ),
-        Text(
-          'Never miss a payment again',
-          style: GoogleFonts.poppins(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: Responsive.fontCaption + 1,
+          Text(
+            'Never miss a payment again',
+            style: GoogleFonts.poppins(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: Responsive.fontCaption + 1,
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
